@@ -1,0 +1,575 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+//#include "ttt_func.h"
+
+// global variables
+
+char *pos_user = 0, *pos_cpu = 0; int pointer_user[2] = {0} ; int pointer_cpu[2] = {0};
+
+int counter = 0, counter_user = 0, counter_cpu = 0;
+
+char mat[3][3];
+
+int i, j, ir, jr;
+
+char cpu_ch, user_ch;  // variables to hold 'X' and 'O' for both the user and the cpu
+
+// functions used
+
+void display(), error_message(), print_dash();
+void fill(); int solve(); void game(int, int);
+
+
+int count = 0;
+
+int checkByColumn(int c, char ch);
+int checkByRow(int r, char ch);
+int checkByDiagonal(int r, int c, char ch);
+
+int iterations=0;
+
+int random(int lower, int upper)
+{
+	srand (time (NULL));
+	int num = (rand() % (upper - lower + 1)) + lower;
+	++iterations;
+	return num;
+}
+
+
+void fill()
+{
+	
+	for(i=0;i<3;i++)
+	{
+		for(j=0;j<3;j++)
+		{
+			mat[i][j] = 'N';    // N --> Empty
+		}
+		printf("\n");
+	}
+
+}
+
+
+void error_message()
+{
+	printf("\nInvalid Input...\n\n");
+}
+
+void print_dash(int pos)
+{
+	printf("\t\t\t\t__ ");
+}
+
+
+void display()
+{
+	for(i=0;i<3;i++)
+	{
+		for(j=0;j<3;j++)
+		{
+			if(j==0)
+				printf("\t\t\t\t%c ",mat[i][j]);
+			
+			else if(j==1)
+				printf("%c ",mat[i][j]);
+				
+			else if(j==2)
+				printf("%c\n",mat[i][j]);
+				
+			//print_dash();
+		}
+	}
+}
+
+
+int solve()
+{
+	++iterations;
+	printf("In solve()\n");
+	int rd;
+	rd = rand();
+	if(rd%10==2 || rd%10==1 || rd%10==0)
+	{
+		printf("\nInside if : %d\n",rd);
+		printf("\nlast digit : %d\n",rd%10);
+		return (rd%10);
+	}
+	
+	else
+	{
+		solve();
+	}
+
+}
+
+
+void game(int user, int cpu)
+{
+	int row, column,x,y;
+	printf("In game()\n");
+	
+	if(counter==9)
+	{
+		if(pos_user == 0 && pos_cpu == 0)
+			printf("\n\nMatch Draw\n\n");
+		else
+		{
+			
+			if(pos_user == 0 && pos_cpu !=0 )
+				printf("\n\nYou Lost!!!\n\n");
+				
+			else if(pos_user == 0 && pos_cpu !=0 )
+				printf("\n\nYou Won!!!\n\n");
+			
+			else
+				printf("There is some problem under if cond : counter == 9\n\n");
+			
+			exit(1);
+				
+		}
+			
+	}
+	
+	++counter; // counting of Total no. of attempts made by both players
+	
+	// user's play
+	
+	if(counter%2 == user)  
+	{
+		// to check if user gives a valid row and column and within range
+		printf("User plays for attempt no. %d\n\n",++counter_user);
+		printf("before acceptfromUser()\n");
+		
+		void acceptfromUser()
+		{
+			do
+			{
+				// accepts the row no. 
+				printf("Enter the row no. : \n"); 
+				scanf("%d",&row);
+				
+				// accepts the column no.
+				printf("Enter the column no. : \n");
+				scanf("%d",&column);
+				
+				if(( row > 3 || row < 1 ) || ( column < 1 || column > 3 ))
+				{
+					printf("\nOUT OF RANGE... Try Again\n\n");
+				}
+					
+			}while(( row > 3 || row < 1 ) || ( column < 1 || column > 3 ));
+			column-=1;
+			row-=1;	
+		}
+		acceptfromUser();
+		printf("after acceptfromUser()\n");
+		printf("row : %d ; column : %d\n", row, column);
+		
+		if(mat[row][column]=='N')
+		{	mat[row][column] = user_ch;
+			printf("%c inserted into desired location of the user\n", user_ch);
+		}  // inserts user_ch into desired location in the matrix
+			
+		else
+		{
+			printf("Position already filled, Try another position \n\n");
+			acceptfromUser();
+			mat[row][column] = user_ch;
+			printf("%c inserted into desired location of the user at 2nd attempt\n", user_ch);
+		}
+		
+	} // if user plays
+	
+	
+	// cpu's play
+	
+	else if(counter%2 == cpu)
+	{
+		++counter_cpu;
+		
+		printf("CPU plays for attempt no. %d\n\n",counter_cpu);
+		
+		if( counter == 9 )  // change#1
+		{
+			printf("Now begins win or defend round !!!\n\n");
+			exit(1);
+			*pos_user = cpu_ch; // placing
+		}
+		
+		else
+		{
+			
+			printf("cpu's play : if counter < 9\n\n");   //change#2
+			
+			// acquiring random position for cpu in matrix 
+			// for first attempt
+			if(counter_cpu == 1)
+			{
+				printf("Counter==1 && random fill!\n");
+				do
+				{
+					printf("To get random i \n\n");
+					ir = solve();
+					printf("To get random j \n\n");
+					jr = solve();	
+					printf("ir : %d ; jr : %d\n\n");
+					
+				}while(mat[ir][jr]!='N');
+				
+				printf("Initially : @%c@\n",mat[ir][jr]);
+				mat[ir][jr] = cpu_ch;
+				pointer_cpu[0] = ir;   pointer_cpu[1] = jr;
+				printf("After input : @%c@\n",mat[ir][jr]);
+			}
+			
+			
+			// following else if condition is for randomly choosing a row or column or diagonal
+			// when 1 < counter < (3 or 4)
+			// then randomly choosing a position within that row or column or diagonal 
+			// and placing cpu_ch into it
+			
+			
+			else if(counter_cpu > 1) // change#2
+			{
+				printf("Random selection of row or column or diagonal\n");
+				// 1 --> row
+				// 2 --> column
+				// 3 --> diagonal
+				
+				int upperbound=0, choose_type;
+				int rcd[3] = {0}; // to store the type no. if available
+				
+				// Following if condition are finding out if the row or column or diagonal are available for cpu_ch only
+				// for selection in random...
+				
+				if((checkByColumn(pointer_cpu[1], user_ch)==0)) // if user not present in that column
+				{
+					upperbound++; rcd[1] = 2;
+					printf("%c not present in column\n",user_ch);
+				}
+				
+				if(checkByRow(pointer_cpu[0], user_ch)==0) // if user not present in that row
+				{
+					upperbound++;
+					rcd[0] = 1;
+					printf("%c not present in row\n",user_ch);
+				}
+				
+				if( (pointer_cpu[0]+pointer_cpu[1])==2 || (pointer_cpu[0] == pointer_cpu[1]) ) // condition for position along a diagonal
+				{
+					if(checkByDiagonal(pointer_cpu[0], pointer_cpu[1], user_ch)==0)  // if user not present in that diagonal
+					{
+						upperbound++;
+						rcd[2] = 3;
+						printf("%c not present in diagonal\n",user_ch);
+					}
+				}
+				
+				// condition where random filling is the only way
+				if(upperbound == 0)  
+				{
+					printf("Upperbound is 0\n");
+					printf("To check if any empty row or column is available\n\n");
+					int k, c1 = 0, pos;
+					int c2 = c1;
+					
+					// for loop to check if there is an empty row or column where cpu_ch could be placed
+					
+					for(k = 0; k<=2 ; k++){
+						if(checkByRow(k,user_ch)==0)
+						{
+							c1++;  // check counter if user_ch available
+							break;
+						}
+						
+						if(checkByColumn(k,user_ch)==0)
+						{
+							c2++;  // check counter if user_ch available
+							break;
+						}
+					}
+					
+					if(c1>0){   // there is one row that is empty or consist of cpu_ch
+						printf("An empty row is available\n");
+						// fixed row
+						x = pos ;
+						// (x,y) position should be empty
+						do
+						{
+							y = random(0,2);	 // any random column	
+							
+						}while(mat[x][y]!='N');
+					}
+					
+					else if(c2>0){ // there is one column that is empty or consist of cpu_ch
+						printf("An empty column is available\n");
+						// fixed column
+						printf("Column no. : %d\n", c2);
+						y = pos ; 
+						// (x,y) position should be empty
+						do
+						{
+							x = random(0,2);	 // any random row	
+							
+						}while(mat[x][y]!='N');
+						
+					}
+					
+					else if(c1==0 && c2==0){
+						printf("Random fill!\n");
+						do{
+							x=random(0,2);
+							y=random(0,2);
+						}while(mat[x][y]!='N');						
+					}
+					
+					else{
+						printf("Kuch to locha hain!! Line 336\n\n"); exit(1);
+					}
+					printf("Position for %c played by CPU : (%d, %d)\n\n",cpu_ch,x,y);
+					mat[x][y] = cpu_ch;
+					pointer_cpu[0] = x;
+					pointer_cpu[1] = y;
+				}
+				
+				else
+				{
+					printf("Chosen no. of types : %d\n",upperbound);
+					y=x=-1;
+					do
+					{
+						choose_type = solve() + 1;   // choosing row or column or diagonal  by random selection
+						
+					}while(rcd[choose_type-1]==0);
+
+					printf("Chosen type : %d\n",rcd[choose_type-1]);
+					
+					// Following if condition is for filling cpu_ch in selected row or column or diagonal
+					
+					// if row is selected
+					if( rcd[choose_type-1] == 1 )
+					{
+						x = pointer_cpu[0];  // fixed row
+						// (x,y) cannot be empty
+						do
+						{
+							y = solve(0,2);	 // any random column
+							
+						}while(mat[x][y]!='N');
+						
+						//mat[ x ][ y ] = cpu_ch;
+						printf("Fixed Row  : %d\nColumn Selected : %d\n\n",x,y);
+					}
+					
+					// if column is selected
+					else if(rcd[choose_type-1] == 2) 
+					{
+						y = pointer_cpu[1];			// fixed column
+						
+						// y cannot be equals to x
+						do{
+							x = solve();		    // any random row
+							
+						}while(mat[x][y]!='N');
+						
+						//mat[ x ][ y ] = cpu_ch;
+						printf("Row selected : %d\nFixed Column : %d\n\n",x,y);
+					}
+					
+					// if diagonal is selected
+					else if(rcd[choose_type-1] == 3) 
+					{
+						
+						do // x and y have to be equal or x + y == 2
+						{
+							x = random(0,2);  y = random(0,2);   // any random row and column
+							printf("Row selected : %d\nColumn Selected: %d\n\n",x,y);	
+							if(mat[x][y]=='N')
+							{
+								if( ( x==y ) ||  (x+y)==2 )
+									break;
+							}
+								
+						}while( ( x!=y ) ||  (x+y)!=2 );
+						
+						printf("Final --> Row selected : %d\tColumn Selected: %d\n\n",x,y);
+						
+					}
+					printf("no. of iterations dimension + (x,y) : %d\n\n",iterations);
+					printf("Position for %c played by CPU : (%d, %d)\n\n",cpu_ch,x,y);
+					mat[x][y] = cpu_ch;
+					
+					printf("%c\n\n",mat[x][y]);
+					
+					// last position of cpu stored
+					pointer_cpu[0] = x;
+					pointer_cpu[1] = y;
+					
+				} // if upperboud is not 0
+				
+			}//if counter < 9
+		}			
+	}// if cpu plays
+	
+	display();
+	
+	if ( counter == 9 )  // checking every iteration if working   // change#5
+		exit(1);
+		
+	game(user,cpu);
+}
+
+
+
+void assignXorO() // assigns 'X' or 'O' to user and cpu or vice versa
+{
+	printf("\nin assignXorO()\n");
+	
+	int choose_char = (random(1,10))%2;    // to get random number from which to determine whether 'X' or 'O'
+	
+	// random() will return 1 or 0   |   1 --> 'X'  and 0 --> 'O'
+	
+	if(choose_char == 1)    // cpu gets 'X'
+	{
+		cpu_ch = 'X';
+		user_ch = 'O';
+		printf("CPU takes %c\n\nUser takes %c\n", cpu_ch, user_ch);
+	}
+	
+	else  // cpu gets 'O'
+	{
+		cpu_ch = 'O';
+		user_ch = 'X';
+		printf("CPU takes %c\n\nUser takes %c\n", cpu_ch, user_ch);
+	}
+	
+}
+
+
+
+
+
+
+int main()
+{
+	fill();
+	int ch, odd, even;
+	do
+	{
+		printf("\t\tWould You like to start the game? --> Y or N\n\n\t\t\t\t");
+		ch = getch();
+		printf("\n\t\t\t");
+		if(ch == 'Y' || ch == 'y')
+		{
+			printf("User starts the game\n");
+			
+			assignXorO();
+			display();
+			game(1, 0);  // 1 starts the game, 0 starts second
+		}
+			
+			
+		else if(ch=='N' || ch=='n')
+		{
+			printf("CPU starts the game\n");
+						
+			assignXorO();
+			printf("CPU : %c  |  USER : %c", cpu_ch, user_ch);
+			
+			// obtain a random position (i,j) in matrix for CPU
+			ir = solve();
+			jr = solve();
+			display();
+			// the function where the main tic tao toe game will be run
+			game(0, 1);
+			// 1 starts the game, 0 starts second
+		}
+			
+		else
+			error_message();
+		
+	}while(ch!='Y' && ch!='y' && ch!='N' && ch!='n');
+	
+	//acceptfromUser();
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+int checkByColumn(int c, char ch)
+{
+	count = 0;
+	printf("in checkByColumn, c : %d\n",c);
+	
+	for(i = 0; i<3; i++)
+	{
+		printf("Checking %c with %c\n",mat[i][c],ch);
+		if( mat[i][c] == ch )
+			count++;
+	}
+	printf("No. of %c in column : %d\n\n",ch,count);
+	return count;
+	
+}
+
+int checkByRow(int r, char ch)
+{
+	count = 0;
+	printf("in checkByRow, r : %d\n",r);
+	for(i = 0; i<3; i++)
+	{
+		printf("Checking %c with %c\n",mat[r][i],ch);
+		if( mat[r][i]==ch )
+			count++;
+	}
+	printf("No. of %c in Row : %d\n\n",ch,count);
+	return count;
+	
+}
+
+int checkByDiagonal(int r, int c, char ch)
+{
+	count = 0;
+	printf("in checkByDiagonal r: %d ; c : %d\n",r,c);
+	if(r==c)
+	{
+		for(i=0;i<3;i++)
+		{
+			printf("Checking %c with %c\n",mat[i][i],ch);
+			if(mat[i][i] == ch )
+				count++;
+		}
+		
+	}
+	
+	else if( (r!=c) && (r+c)==2 )
+	{
+		
+		j=2;  // j for column ; i for row
+		
+		for(i=0;i<3;i++)
+		{
+			printf("Checking %c with %c\n",mat[i][j],ch);
+			if(mat[i][j]==ch)
+				count++;
+			j--;
+		}
+		
+	}
+	printf("No. of %c in Diagonal : %d\n\n",ch,count);
+	return count;
+	
+}
